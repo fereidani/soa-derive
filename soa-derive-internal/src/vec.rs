@@ -196,7 +196,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// ::insert()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.insert).
             #[allow(clippy::forget_non_drop)]
             pub fn insert(&mut self, index: usize, element: #name) {
-                if index > self.len() {
+                if index >= self.len() {
                     panic!("index out of bounds: the len is {} but the index is {}", self.len(), index);
                 }
 
@@ -213,7 +213,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// Similar to [`std::mem::replace()`](https://doc.rust-lang.org/std/mem/fn.replace.html).
             #[allow(clippy::forget_non_drop)]
             pub fn replace(&mut self, index: usize, element: #name) -> #name {
-                if index > self.len() {
+                if index >= self.len() {
                     panic!("index out of bounds: the len is {} but the index is {}", self.len(), index);
                 }
 
@@ -317,21 +317,21 @@ pub fn derive(input: &Input) -> TokenStream {
             #[doc = #vec_name_str]
             /// ::retain()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.retain).
             pub fn retain<F>(&mut self, mut f: F) where F: FnMut(#ref_name) -> bool {
-                let len = self.len();
-                let mut del = 0;
+                let mut slice = self.as_mut_slice();
+                let len = slice.len();
+                let mut write_idx = 0;
 
-                {
-                    let mut slice = self.as_mut_slice();
-                    for i in 0..len {
-                        if !f(slice.get(i).unwrap()) {
-                            del += 1;
-                        } else if del > 0 {
-                            slice.swap(i - del, i);
+                for read_idx in 0..len {
+                    if f(slice.get(read_idx).unwrap()) {
+                        if write_idx != read_idx {
+                            slice.swap(write_idx, read_idx);
                         }
+                        write_idx += 1;
                     }
                 }
-                if del > 0 {
-                    self.truncate(len - del);
+
+                if write_idx < len {
+                    self.truncate(write_idx);
                 }
             }
 
@@ -339,21 +339,21 @@ pub fn derive(input: &Input) -> TokenStream {
             #[doc = #vec_name_str]
             /// ::retain_mut()`](https://doc.rust-lang.org/std/vec/struct.Vec.html#method.retain_mut).
             pub fn retain_mut<F>(&mut self, mut f: F) where F: FnMut(#ref_mut_name) -> bool {
-                let len = self.len();
-                let mut del = 0;
+                let mut slice = self.as_mut_slice();
+                let len = slice.len();
+                let mut write_idx = 0;
 
-                {
-                    let mut slice = self.as_mut_slice();
-                    for i in 0..len {
-                        if !f(slice.get_mut(i).unwrap()) {
-                            del += 1;
-                        } else if del > 0 {
-                            slice.swap(i - del, i);
+                for read_idx in 0..len {
+                    if f(slice.get_mut(read_idx).unwrap()) {
+                        if write_idx != read_idx {
+                            slice.swap(write_idx, read_idx);
                         }
+                        write_idx += 1;
                     }
                 }
-                if del > 0 {
-                    self.truncate(len - del);
+
+                if write_idx < len {
+                    self.truncate(write_idx);
                 }
             }
 
