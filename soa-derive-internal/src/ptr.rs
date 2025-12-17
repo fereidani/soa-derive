@@ -108,7 +108,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// Similar to [`*const T::as_ref()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.as_ref),
             /// with the same safety caveats.
             pub unsafe fn as_ref<'a>(self) -> Option<#ref_name<'a>> {
-                if self.is_null() {
+                if ::branches::unlikely(self.is_null()) {
                     None
                 } else {
                     Some(#ref_name {
@@ -214,7 +214,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// Similar to [`*mut T::as_ref()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.as_ref),
             /// with the same safety caveats.
             pub unsafe fn as_ref<'a>(self) -> Option<#ref_name<'a>> {
-                if self.is_null() {
+                if ::branches::unlikely(self.is_null()) {
                     None
                 } else {
                     Some(#ref_name {
@@ -226,7 +226,7 @@ pub fn derive(input: &Input) -> TokenStream {
             /// Similar to [`*mut T::as_mut()`](https://doc.rust-lang.org/std/primitive.pointer.html#method.as_mut),
             /// with the same safety caveats.
             pub unsafe fn as_mut<'a>(self) -> Option<#ref_mut_name<'a>> {
-                if self.is_null() {
+                if ::branches::unlikely(self.is_null()) {
                     None
                 } else {
                     Some(#ref_mut_name {
